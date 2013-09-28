@@ -47,14 +47,6 @@ zend_object_value easywsclient_create_handler(zend_class_entry* type TSRMLS_DC) 
     return retval;
 }
 
-// this only happens after PHP 5.4... remember to change zend_function_entry to function_entry or use #if
-zend_function_entry easywsclient_methods[] = {
-    PHP_ME(easywsclient,  __construct,     NULL, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
-    PHP_ME(easywsclient,  poll,            NULL, ZEND_ACC_PUBLIC)
-    PHP_ME(easywsclient,  send,            NULL, ZEND_ACC_PUBLIC)
-    PHP_ME(easywsclient,  dispatch,        NULL, ZEND_ACC_PUBLIC)
-    {NULL, NULL, NULL}
-};
 
 // The actual methods...
 PHP_METHOD(easywsclient, __construct) {
@@ -68,7 +60,7 @@ PHP_METHOD(easywsclient, __construct) {
     
     // Casting char -> string
     easywsclient::WebSocket::pointer ws = easywsclient::WebSocket::from_url((std::string)url);
-    ZEND_REGISTER_RESOURCE(res, ws, le_easywsclient);
+    ZEND_REGISTER_RESOURCE(res, &ws, le_easywsclient);
         
     // Build the object
     object_init(return_value);
@@ -121,11 +113,36 @@ PHP_METHOD(easywsclient, readyState) {
 	 * Ultimatively useful when doing while($ws->readyState() != easywsclient::CLOSED)
 	 */
 	 zval *_this = getThis();
-	 zend_object_value obj = Z_OBJVAL_P(_this);
-	 zend_object_handlers oh = Z_OBJ_HANDLER(obj, read_property);
-	 easywsclient::WebSocket::pointer ws = NULL;
+	 zend_object_value obj = Z_OBJVAL_P(getThis());
+	 const zend_object_handlers *oh = obj.handlers;
+	 HashTable *oht = oh->get_properties(_this TSRMLS_CC);
+
+	 zval *val;
+	 ALLOC_INIT_ZVAL(val);
+	 Z_TYPE_P(val) = IS_STRING;
+	 Z_STRVAL_P(val) = (char*)"ws";
+	
+	 long pt = zend_get_hash_value("ws", strlen("ws"));
+	 //easywsclient::WebSocket::pointer ws; 
+	 //ws = pt;
+	 //fprintf(stderr, "pt is: %lu\n", pt);
+	 /*zval *valB;
+	 ALLOC_INIT_ZVAL(valB);
+	 Z_TYPE_P(valB) = IS_LONG;
+	 Z_LVAL_P(valB)	= oh->read_property(_this, val, 0, NULL TSRMLS_CC); */
+	 //easywsclient::WebSocket::pointer ws = NULL;
 	 //ws = (_this, "ws");
 }
+
+// this only happens after PHP 5.4... remember to change zend_function_entry to function_entry or use #if
+zend_function_entry easywsclient_methods[] = {
+    PHP_ME(easywsclient,  __construct,     NULL, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
+    PHP_ME(easywsclient,  poll,            NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(easywsclient,  send,            NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(easywsclient,  dispatch,        NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(easywsclient,  readyState,      NULL, ZEND_ACC_PUBLIC)
+    {NULL, NULL, NULL}
+};
 
 PHP_MINIT_FUNCTION(easywsclient)
 {	
