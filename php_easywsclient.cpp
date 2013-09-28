@@ -122,9 +122,9 @@ PHP_METHOD(easywsclient, readyState) {
 	 */
 	 zval *_this = getThis();
 	 zend_object_value obj = Z_OBJVAL_P(_this);
-	 zend_object_handlers oh = Z_OBJ_HANDLER(_this);
+	 zend_object_handlers oh = Z_OBJ_HANDLER(obj, read_property);
 	 easywsclient::WebSocket::pointer ws = NULL;
-	 ws = oh.read_property(_this, "ws");
+	 //ws = (_this, "ws");
 }
 
 PHP_MINIT_FUNCTION(easywsclient)
