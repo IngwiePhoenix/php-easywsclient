@@ -50,7 +50,6 @@ zend_object_value easywsclient_create_handler(zend_class_entry* type TSRMLS_DC) 
 // this only happens after PHP 5.4... remember to change zend_function_entry to function_entry or use #if
 zend_function_entry easywsclient_methods[] = {
     PHP_ME(easywsclient,  __construct,     NULL, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
-    PHP_ME(easywsclient,  create_dummy,    NULL, ZEND_ACC_PUBLIC)
     PHP_ME(easywsclient,  poll,            NULL, ZEND_ACC_PUBLIC)
     PHP_ME(easywsclient,  send,            NULL, ZEND_ACC_PUBLIC)
     PHP_ME(easywsclient,  dispatch,        NULL, ZEND_ACC_PUBLIC)
@@ -59,11 +58,10 @@ zend_function_entry easywsclient_methods[] = {
 
 // The actual methods...
 PHP_METHOD(easywsclient, __construct) {
-	// return easywsclient::WebSocket::from_url(std::string url);
 	char *url;
     int url_len;
     zval *res;
-	zval *object = getThis();
+	zval *_this = getThis();
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &url, &url_len) == FAILURE) {
         RETURN_NULL();
     }
@@ -74,24 +72,59 @@ PHP_METHOD(easywsclient, __construct) {
         
     // Build the object
     object_init(return_value);
-    zend_update_property_stringl(easywsclient_ce, getThis(), "url", strlen("url"), url, url_len TSRMLS_CC);
-    // Add resource
-    //zend_update_property_zval(easywsclient_ce, getThis(), "ws", strlen("ws"), ws TSRMLS_CC);
+
+    zend_update_property_stringl(easywsclient_ce, _this, "url", strlen("url"), url, url_len TSRMLS_CC);
+    zend_update_property(easywsclient_ce, _this, "ws", strlen("ws"), res TSRMLS_CC);
+
     zval_copy_ctor(return_value);
 }
-PHP_METHOD(easywsclient, create_dummy) {
-}
 PHP_METHOD(easywsclient, poll) {
+	/*	
+	 *	1. Get ws from the current object
+	 *	2. run ws->poll()
+	 *	3. Expose txbuf and rxbuf to object
+	 */
+	 zval *_this = getThis();
+	 RETURN_TRUE;
 }
 PHP_METHOD(easywsclient, send) {
+	/*
+	 * 1. Retrieve ws from object
+	 * 2. call ws->send with the string supplied
+	 * 3. If successful, return true, otherwise false.
+	 */
+	 zval *_this = getThis();
+	 char *message;
+	 int msg_length;
+     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &message, &msg_length) == FAILURE) {
+        RETURN_NULL();
+     }
+     // _this -> zval ws -> easywsclient::WebSocket::pointer->send(message)
+     RETURN_TRUE;
 }
 PHP_METHOD(easywsclient, dispatch) {
+	/*
+	 * 1. Get the ws instance from the object.
+	 * 2. prepair the zval callback, or box it around and about, and pass it to ws->dispatch
+	 * 3. Because we can, lets just return the current easywsclient::WebSocket::readyState code.
+	 */
     zval *callback;
+	zval *_this = getThis();
     if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "o", &callback) == FAILURE) {
         RETURN_NULL();
     }
-    *return_value = *callback;
-    zval_copy_ctor(return_value);
+}
+PHP_METHOD(easywsclient, readyState) {
+	/*
+	 * 1. get the ws instance
+	 * 2. return ws->readyState();
+	 * Ultimatively useful when doing while($ws->readyState() != easywsclient::CLOSED)
+	 */
+	 zval *_this = getThis();
+	 zend_object_value obj = Z_OBJVAL_P(_this);
+	 zend_object_handlers oh = Z_OBJ_HANDLER(_this);
+	 easywsclient::WebSocket::pointer ws = NULL;
+	 ws = oh.read_property(_this, "ws");
 }
 
 PHP_MINIT_FUNCTION(easywsclient)

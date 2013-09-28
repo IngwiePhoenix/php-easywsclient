@@ -68,3 +68,5 @@ Makefile.fragments
 libtool
 
 *.la
+
+*.loT

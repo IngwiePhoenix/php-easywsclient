@@ -15,6 +15,8 @@
 #include <vector>
 #include <string>
 
+#include "php_easywsclient.h"
+
 namespace { // private module-only namespace
 
 int hostname_connect(std::string hostname, int port) {
