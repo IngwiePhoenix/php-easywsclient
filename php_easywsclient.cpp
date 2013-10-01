@@ -113,19 +113,25 @@ PHP_METHOD(easywsclient, readyState) {
 	 * Ultimatively useful when doing while($ws->readyState() != easywsclient::CLOSED)
 	 */
 	 zval *_this = getThis();
-	 zend_object_value obj = Z_OBJVAL_P(getThis());
-	 const zend_object_handlers *oh = obj.handlers;
-	 HashTable *oht = oh->get_properties(_this TSRMLS_CC);
 
 	 zval *val;
 	 ALLOC_INIT_ZVAL(val);
 	 Z_TYPE_P(val) = IS_STRING;
 	 Z_STRVAL_P(val) = (char*)"ws";
+	//ZEND_API zval *zend_read_property(zend_class_entry *scope, zval *object, const char *name, int name_length, zend_bool silent TSRMLS_DC);
+	 zval prop = zend_read_property(
+	 	easywsclient_ce, 
+	 	_this, 
+	 	"ws", 
+	 	strlen("ws"), 
+	 	1
+	 	TSRMLS_CC);
 	
 	 long pt = zend_get_hash_value("ws", strlen("ws"));
-	 //easywsclient::WebSocket::pointer ws; 
-	 //ws = pt;
-	 //fprintf(stderr, "pt is: %lu\n", pt);
+	 easywsclient::WebSocket::pointer ws = NULL; 
+	 ws = (easywsclient::WebSocket::pointer)pt;
+	 ws->poll();
+	 //fprintf(stderr, "pt is: %i\n", ws->getReadyState());
 	 /*zval *valB;
 	 ALLOC_INIT_ZVAL(valB);
 	 Z_TYPE_P(valB) = IS_LONG;
